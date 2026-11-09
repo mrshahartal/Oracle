@@ -36,6 +36,16 @@
         @keyframes pulseGlow { 0%, 100% { opacity: 0.7; filter: drop-shadow(0 0 20px #a855f7); } 50% { opacity: 1; filter: drop-shadow(0 0 40px #ec4899); } }
         .animate-orb { animation: orbFloat 5s ease-in-out infinite; }
         .animate-glow { animation: pulseGlow 3s ease-in-out infinite; }
+        
+        @keyframes progressFill {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        .animate-progress {
+            animation: progressFill 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0a0915; }
         ::-webkit-scrollbar-thumb { background: #2e2a52; border-radius: 4px; }
@@ -83,7 +93,20 @@
 
         <!-- Dynamic Answer Modal -->
         <div id="answerSection" class="hidden mt-6 p-6 rounded-2xl bg-gradient-to-b from-purple-950/80 to-lucy-bg border border-purple-400/40 text-center relative overflow-hidden">
-            <div id="resultState" class="space-y-4">
+            
+            <!-- Loading & Progress Bar State -->
+            <div id="loadingState" class="space-y-3 py-2">
+                <p class="text-xs text-purple-300 font-mono tracking-widest animate-pulse">
+                    מתחברת לתודעה הדיגיטלית...
+                </p>
+                <!-- Sexy Neon Progress Bar -->
+                <div class="w-full bg-lucy-bg rounded-full h-2.5 p-0.5 border border-purple-500/30 overflow-hidden">
+                    <div id="progressBar" class="bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-400 h-full rounded-full w-0 shadow-neon-purple"></div>
+                </div>
+            </div>
+
+            <!-- Result State -->
+            <div id="resultState" class="hidden space-y-4">
                 <span class="inline-block px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold uppercase border border-purple-500/30">
                     תשובה
                 </span>
@@ -108,6 +131,9 @@
         const questionInput = document.getElementById('questionInput');
         const oracleForm = document.getElementById('oracleForm');
         const answerSection = document.getElementById('answerSection');
+        const loadingState = document.getElementById('loadingState');
+        const resultState = document.getElementById('resultState');
+        const progressBar = document.getElementById('progressBar');
         const answerText = document.getElementById('answerText');
         const resetBtn = document.getElementById('resetBtn');
         const orbIcon = document.getElementById('orbIcon');
@@ -154,9 +180,23 @@
                 return;
             }
 
+            // Show loading & trigger progress bar animation
             answerSection.classList.remove('hidden');
-            answerText.textContent = secretAnswer.trim() || "אנרגיות החדר מעורפלות כרגע...";
-            orbIcon.className = "fa-solid fa-eye text-2xl text-cyan-300 animate-pulse";
+            loadingState.classList.remove('hidden');
+            resultState.classList.add('hidden');
+            progressBar.classList.remove('animate-progress');
+            void progressBar.offsetWidth; // Force reflow
+            progressBar.classList.add('animate-progress');
+            
+            orbIcon.className = "fa-solid fa-atom text-2xl text-pink-300 animate-spin";
+
+            // Reveal after 2 seconds
+            setTimeout(() => {
+                loadingState.classList.add('hidden');
+                resultState.classList.remove('hidden');
+                answerText.textContent = secretAnswer.trim() || "אנרגיות החדר מעורפלות כרגע...";
+                orbIcon.className = "fa-solid fa-eye text-2xl text-cyan-300 animate-pulse";
+            }, 2000);
         });
 
         resetBtn.addEventListener('click', () => {
@@ -166,6 +206,7 @@
             isTrickActive = false;
             petitionDisplayIndex = 0;
             answerSection.classList.add('hidden');
+            progressBar.classList.remove('animate-progress');
             orbIcon.className = "fa-solid fa-wand-magic-sparkles text-2xl text-white";
             petitionInput.focus();
         });
